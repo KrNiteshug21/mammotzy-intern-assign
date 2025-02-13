@@ -44,10 +44,7 @@ const ActivityForm = ({
 
     const res = ActivitySchema.safeParse(formData);
     setParseResult(res);
-    console.log("res", res);
-    console.log("error", res.error);
     if (res?.error) {
-      console.log("formData", formData);
       return;
     }
 
@@ -70,13 +67,11 @@ const ActivityForm = ({
   ) => {
     let { name, value } = e.target;
     if (name === "category" && value === "other") {
-      console.log("Other category selected");
       setFormData({
         ...formData,
         category: otherActivityCategory,
       });
     } else {
-      console.log(name, value, typeof value);
       setFormData({
         ...formData,
         [name]:
@@ -145,7 +140,6 @@ const ActivityForm = ({
             value={otherActivityCategory}
             onChange={(e) => {
               setOtherActivityCategory(e.target.value);
-              console.log("category", formData.category);
               handleChange(e);
             }}
           />

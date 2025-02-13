@@ -28,7 +28,6 @@ const LocationForm = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    console.log(name, value);
     setFormData({
       ...formData,
       [name]: value,
@@ -53,10 +52,7 @@ const LocationForm = ({
 
     const res = LocationSchema.safeParse(formData);
     setParseResult(res);
-    console.log("res", res);
-    console.log("error", res.error);
     if (res?.error) {
-      console.log("formData", formData);
       return;
     }
 
