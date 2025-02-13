@@ -1,27 +1,13 @@
 import React, { useState } from "react";
 import Label from "@/components/ui/Label";
 import { FormState } from "@/lib/form-types";
-
-const activityDescriptionOptions = [
-  { label: "Adventure & Games", value: "adventure_games" },
-  { label: "Creative Expression", value: "creative_expression" },
-  { label: "Food & Drink", value: "food_drink" },
-  { label: "Learning & Development", value: "learning_development" },
-  { label: "Sports and Fitness", value: "sports_fitness" },
-  { label: "Volunteering", value: "volunteering" },
-  { label: "Other", value: "other" },
-];
-
-const activityTypeOptions = [
-  { label: "Indoor", value: "indoor" },
-  { label: "Outdoor", value: "outdoor" },
-  { label: "Virtual", value: "virtual" },
-];
-
-const locationTypeOptions = [
-  { label: "Provider Location", value: "provider" },
-  { label: "User Location", value: "user" },
-];
+import { SafeParseReturnType } from "zod";
+import { ActivitySchema } from "@/lib/ActivitySchema";
+import {
+  activityDescriptionOptions,
+  activityTypeOptions,
+  locationTypeOptions,
+} from "@/lib/form-obj";
 
 const ActivityForm = ({
   formData,
@@ -34,6 +20,8 @@ const ActivityForm = ({
 }) => {
   const [otherActivityCategory, setOtherActivityCategory] =
     useState<string>("");
+  const [parseResult, setParseResult] =
+    useState<SafeParseReturnType<any, any>>();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +42,15 @@ const ActivityForm = ({
       (field) => !formData[field as keyof FormState]
     );
 
+    const res = ActivitySchema.safeParse(formData);
+    setParseResult(res);
+    console.log("res", res);
+    console.log("error", res.error);
+    if (res?.error) {
+      console.log("formData", formData);
+      return;
+    }
+
     if (
       missingFields.length > 0 &&
       formData.category !== "other" &&
@@ -68,19 +65,10 @@ const ActivityForm = ({
     console.log("Form submitted successfully!", formData);
   };
 
-  // const handleOtherActivityCategory = () => {
-  //   console.log("Other category selected");
-  //   console.log("otherActivityCategory", otherActivityCategory);
-  //   setFormData({
-  //     ...formData,
-  //     category: otherActivityCategory,
-  //   });
-  // };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
     if (name === "category" && value === "other") {
       console.log("Other category selected");
       setFormData({
@@ -88,22 +76,39 @@ const ActivityForm = ({
         category: otherActivityCategory,
       });
     } else {
-      console.log(name, value);
+      console.log(name, value, typeof value);
       setFormData({
         ...formData,
-        [name]: value,
+        [name]:
+          name === "minMembers" || name === "maxMembers"
+            ? parseInt(value)
+            : value,
       });
     }
   };
 
+  const handleFormError = ({ name }: { name: string }) => {
+    const errorExist = parseResult?.error?.errors.find(
+      (error) => error.path[0] === name
+    );
+    if (!errorExist) return null;
+    return <span className="text-red-500 text-sm">{errorExist.message}</span>;
+  };
+
   return (
-    <section className="flex-1 w-full text-sm">
+    <section className="flex-1 w-full text-base">
       <h2 className="mb-4 font-semibold text-xl">Activity Details</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col gap-2">
-          <Label>Activity Name</Label>
+          <Label
+            className="w-full sm:w-11/12"
+            htmlFor="activityName"
+            handleFormError={handleFormError}
+          >
+            Activity Name
+          </Label>
           <input
-            className="border-gray-300 px-4 py-2 border rounded-full w-full sm:w-4/5 outline-none"
+            className="px-4 py-2 border border-gray-300 rounded-full outline-none w-full sm:w-11/12"
             type="text"
             placeholder="Eg: Cooking Class in Palo Alto"
             value={formData.activityName}
@@ -113,7 +118,13 @@ const ActivityForm = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label>Select the best category to describe your activity </Label>
+          <Label
+            className="w-full sm:w-11/12"
+            htmlFor="category"
+            handleFormError={handleFormError}
+          >
+            Select the best category to describe your activity{" "}
+          </Label>
           {activityDescriptionOptions.map((option) => (
             <div className="flex items-center gap-2" key={option.value}>
               <input
@@ -127,7 +138,7 @@ const ActivityForm = ({
             </div>
           ))}
           <input
-            className="border-gray-300 px-4 py-2 border rounded-full w-full sm:w-4/5 outline-none"
+            className="px-4 py-2 border border-gray-300 rounded-full outline-none w-full sm:w-11/12"
             type="text"
             name="category"
             placeholder="Specify the category"
@@ -141,9 +152,15 @@ const ActivityForm = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label>About Activity</Label>
+          <Label
+            className="w-full sm:w-11/12"
+            htmlFor="about"
+            handleFormError={handleFormError}
+          >
+            About Activity
+          </Label>
           <textarea
-            className="border-gray-300 px-4 py-2 border rounded-md w-full sm:w-4/5 outline-none"
+            className="px-4 py-2 border border-gray-300 rounded-md outline-none w-full sm:w-11/12"
             rows={6}
             placeholder="Activity Desciption"
             value={formData.about}
@@ -153,7 +170,13 @@ const ActivityForm = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label>Activity Type</Label>
+          <Label
+            className="w-full sm:w-11/12"
+            htmlFor="activityType"
+            handleFormError={handleFormError}
+          >
+            Activity Type
+          </Label>
           {activityTypeOptions.map((option) => (
             <div className="flex items-center gap-2" key={option.value}>
               <input
@@ -169,7 +192,13 @@ const ActivityForm = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label>Type of Location</Label>
+          <Label
+            className="w-full sm:w-11/12"
+            htmlFor="locationType"
+            handleFormError={handleFormError}
+          >
+            Type of Location
+          </Label>
           {locationTypeOptions.map((option) => (
             <div className="flex items-center gap-2" key={option.value}>
               <input
@@ -188,28 +217,34 @@ const ActivityForm = ({
           <h2 className="mb-2">
             How many members can take part in the activity?
           </h2>
-          <div className="flex gap-4 w-full sm:w-4/5">
+          <div className="flex gap-4 w-full sm:w-11/12">
             <div className="flex flex-col flex-1 gap-2">
               <label className="hidden">How Many Members (Min):</label>
               <input
-                className="border-gray-300 px-4 py-2 border rounded-full outline-none"
-                type="text"
+                className="px-4 py-2 border border-gray-300 rounded-full outline-none"
+                type="number"
                 placeholder="Minimum Members"
                 value={formData.minMembers}
                 name="minMembers"
                 onChange={handleChange}
               />
+              <p className="ml-2 text-sm">
+                {handleFormError({ name: "minMembers" })}
+              </p>
             </div>
             <div className="flex flex-col flex-1 gap-2">
               <label className="hidden">How Many Members (Max):</label>
               <input
-                className="border-gray-300 px-4 py-2 border rounded-full outline-none"
-                type="text"
+                className="px-4 py-2 border border-gray-300 rounded-full outline-none"
+                type="number"
                 placeholder="Maximum Members"
                 value={formData.maxMembers}
                 name="maxMembers"
                 onChange={handleChange}
               />
+              <p className="ml-2 text-sm">
+                {handleFormError({ name: "maxMembers" })}
+              </p>
             </div>
           </div>
         </div>

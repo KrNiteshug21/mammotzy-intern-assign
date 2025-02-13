@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { SuccessModal } from "./SuccessModal";
 import { FormState } from "@/lib/form-types";
-import { initFormData } from "@/lib/form-init-obj";
+import { initFormData } from "@/lib/form-obj";
+import { LocationSchema } from "@/lib/LocationSchema";
+import { SafeParseReturnType } from "zod";
+import Label from "./ui/Label";
 
 const LocationForm = ({
   formData,
@@ -13,6 +16,8 @@ const LocationForm = ({
   handleTabChange: (tab: string) => void;
 }) => {
   const [openModal, setOpenModal] = useState(false);
+  const [parseResult, setParseResult] =
+    useState<SafeParseReturnType<any, any>>();
   const onCloseModal = () => {
     setOpenModal(false);
     window.location.reload();
@@ -46,6 +51,15 @@ const LocationForm = ({
       (field) => !formData[field as keyof FormState]
     );
 
+    const res = LocationSchema.safeParse(formData);
+    setParseResult(res);
+    console.log("res", res);
+    console.log("error", res.error);
+    if (res?.error) {
+      console.log("formData", formData);
+      return;
+    }
+
     if (missingFields.length > 0) {
       alert(`Please fill all required fields: ${missingFields.join(", ")}`);
       return;
@@ -53,6 +67,14 @@ const LocationForm = ({
     console.log("Form submitted", formData);
     setFormData(initFormData);
     setOpenModal(true);
+  };
+
+  const handleFormError = ({ name }: { name: string }) => {
+    const errorExist = parseResult?.error?.errors.find(
+      (error) => error.path[0] === name
+    );
+    if (!errorExist) return null;
+    return <span className="text-red-500 text-sm">{errorExist.message}</span>;
   };
 
   return (
@@ -66,9 +88,11 @@ const LocationForm = ({
 
         <form className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label>Address Line 1:</label>
+            <Label htmlFor="addressLine1" handleFormError={handleFormError}>
+              Address Line 1
+            </Label>
             <input
-              className="border-gray-300 px-4 py-2 border rounded-full outline-none"
+              className="px-4 py-2 border border-gray-300 rounded-full outline-none"
               type="text"
               name="addressLine1"
               placeholder="House number and street name"
@@ -78,9 +102,11 @@ const LocationForm = ({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label>Address Line 2:</label>
+            <Label htmlFor="addressLine2" handleFormError={handleFormError}>
+              Address Line 2
+            </Label>
             <input
-              className="border-gray-300 px-4 py-2 border rounded-full outline-none"
+              className="px-4 py-2 border border-gray-300 rounded-full outline-none"
               type="text"
               name="addressLine2"
               placeholder="Other information, eg: building name, landmark, etc."
@@ -90,9 +116,11 @@ const LocationForm = ({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label>ZIP Code:</label>
+            <Label htmlFor="zipCode" handleFormError={handleFormError}>
+              ZIP Code
+            </Label>
             <input
-              className="border-gray-300 px-4 py-2 border rounded-full outline-none"
+              className="px-4 py-2 border border-gray-300 rounded-full outline-none"
               type="text"
               name="zipCode"
               placeholder="eg: 123 467"
@@ -103,9 +131,11 @@ const LocationForm = ({
 
           <div className="flex gap-2">
             <div className="flex flex-col flex-1 gap-2">
-              <label>City:</label>
+              <Label htmlFor="city" handleFormError={handleFormError}>
+                City:
+              </Label>
               <input
-                className="border-gray-300 px-4 py-2 border rounded-full outline-none"
+                className="px-4 py-2 border border-gray-300 rounded-full outline-none"
                 type="text"
                 name="city"
                 placeholder="Your City"
@@ -114,19 +144,21 @@ const LocationForm = ({
               />
             </div>
             <div className="flex flex-col flex-1 gap-2">
-              <label>State:</label>
+              <Label htmlFor="state" handleFormError={handleFormError}>
+                State:
+              </Label>
               <input
-                className="border-gray-300 px-4 py-2 border rounded-full outline-none"
+                className="px-4 py-2 border border-gray-300 rounded-full outline-none"
                 type="text"
-                name="city"
+                name="state"
                 placeholder="Your State"
-                value={formData.city}
+                value={formData.state}
                 onChange={handleChange}
               />
             </div>
           </div>
 
-          <div className="border-gray-300 my-10 border-t" />
+          <div className="my-10 border-gray-300 border-t" />
 
           <div>
             <div className="mb-4">
@@ -135,29 +167,37 @@ const LocationForm = ({
             </div>
             <div className="flex gap-2">
               <div className="flex-1 w-full">
-                <label className="hidden">
+                <label htmlFor="contactNumber" className="hidden">
                   Contact Number (with country code):
                 </label>
                 <input
-                  className="border-gray-300 px-4 py-2 border rounded-full w-full outline-none"
+                  className="px-4 py-2 border border-gray-300 rounded-full outline-none w-full"
                   type="text"
                   name="contactNumber"
                   placeholder="Contact Number"
                   value={formData.contactNumber}
                   onChange={handleChange}
                 />
+                <p className="ml-2 text-sm">
+                  {handleFormError({ name: "contactNumber" })}
+                </p>
               </div>
 
               <div className="flex-1 w-full">
-                <label className="hidden">Contact Name:</label>
+                <label htmlFor="contactName" className="hidden">
+                  Contact Name:
+                </label>
                 <input
-                  className="border-gray-300 px-4 py-2 border rounded-full w-full outline-none"
+                  className="px-4 py-2 border border-gray-300 rounded-full outline-none w-full"
                   type="text"
                   name="contactName"
                   placeholder="Contact Name"
                   value={formData.contactName}
                   onChange={handleChange}
                 />
+                <p className="ml-2 text-sm">
+                  {handleFormError({ name: "contactName" })}
+                </p>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@ import ActivityForm from "@/components/ActivityForm";
 import LocationForm from "@/components/LocationForm";
 import { useState } from "react";
 import { FormState } from "@/lib/form-types";
-import { initFormData } from "@/lib/form-init-obj";
+import { initFormData } from "@/lib/form-obj";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>("activity");
