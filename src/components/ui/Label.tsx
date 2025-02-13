@@ -9,7 +9,7 @@ const Label = ({
   className?: string;
   children: React.ReactNode;
   requiredField?: boolean;
-  handleFormError?: any;
+  handleFormError: (args: { name: string }) => React.ReactNode;
 }) => {
   return (
     <label

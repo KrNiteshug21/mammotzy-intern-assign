@@ -65,7 +65,7 @@ const ActivityForm = ({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    let { name, value } = e.target;
+    const { name, value } = e.target;
     if (name === "category" && value === "other") {
       setFormData({
         ...formData,
